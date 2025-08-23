@@ -30,6 +30,16 @@ spring:
         #登录所用的用户名与密码
         login-username: admin
         login-password: admin
+  data:
+    redis:
+      host: hadoop01
+      port: 6379
+      database: 0
+
+# JWT 配置
+jwt:
+  secret: krbz3ku5Fgzh64VzzDYwlSWvd98lX9qf
+  expiration: 7200000  # 2小时 (毫秒)
 
 mybatis-plus:
   global-config:
