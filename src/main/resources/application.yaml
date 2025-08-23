@@ -1,0 +1,42 @@
+server:
+  port: 7700
+  servlet:
+    context-path: /sn
+
+spring:
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://hadoop01:3306/sn?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+      username: root
+      password: Chen2698
+      # 初始化连接池大小
+      initialSize: 5
+      # 最小连接数
+      minIdle: 5
+      # 最大连接数
+      maxActive: 40
+      #配置可视化控制台页面
+      stat-view-servlet:
+        enabled: true
+        #访问德鲁伊监控页面的地址
+        url-pattern: /druid/*
+        #IP白名单 没有配置或者为空 则允许所有访问
+        allow:
+        #IP黑名单 若白名单也存在 则优先使用
+        deny:
+        #禁用重置按钮
+        reset-enable: true
+        #登录所用的用户名与密码
+        login-username: admin
+        login-password: admin
+
+mybatis-plus:
+  global-config:
+    banner: true
+  type-aliases-package: com.boyu.snbe.**
+  #  classpath*表示不仅扫描当前项目下的mapper目录，还扫描依赖jar下的mapper目录
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
