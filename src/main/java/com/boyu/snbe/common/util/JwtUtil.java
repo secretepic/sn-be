@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.function.Function;
 
 @ConfigurationProperties(prefix = "jwt")
 @Component
@@ -35,6 +36,7 @@ public class JwtUtil {
     public void setKey() {
         hmacKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
+
     public String generateToken(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
@@ -67,6 +69,42 @@ public class JwtUtil {
             log.error("JWT为空或格式错误");
         }
         return null;
+    }
+
+    // 从令牌中提取用户名
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    // 从令牌中提取过期时间
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    // 从令牌中提取声明
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // 提取所有声明
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(hmacKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    // 验证令牌是否过期
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    // 验证令牌
+    public Boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
 }
