@@ -19,6 +19,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * springSecurity的扩展点
+ * 自己实现一个Filter效果是一样的，官网推荐这种方式，更灵活
+ * 保证这个过滤器只会被调用一次，就算是内部有转发或者重定向等等，在req到req的过程中，只会调用一次
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -40,23 +45,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 // 从Redis中获取存储的JWT
                 String redisJwt = redisService.get(JWT_REDIS_PREFIX + username);
 
-                // 检查Redis中是否存在该token
-//                if (redisService.hasKey(username) && jwt.equals(redisService.get(username))) {
-//                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-//                    UsernamePasswordAuthenticationToken authentication =
-//                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//
-//                    SecurityContextHolder.getContext().setAuthentication(authentication);
-//                }
-                // 验证JWT是否有效且与Redis中存储的一致
+                // 验证JWT是否有效且与Redis中存储的一致, 并且用户名与JWT中的用户名一致，如果任何一个没满足就会返回401
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null &&
                         redisJwt != null && redisJwt.equals(jwt) && jwtUtils.validateToken(jwt, username)) {
 
-                    // 5. 加载用户详情
+                    // 加载用户信息
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    // 6. 设置认证信息
+                    // 设置认证信息
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -65,6 +61,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                             );
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
+                    // 这里是给后续的过滤器提供认证信息
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
