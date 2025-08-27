@@ -26,11 +26,6 @@ public class UserEntity {
     private String password;
 
     /**
-     * 盐值（用于密码加密）
-     */
-    private String salt;
-
-    /**
      * 状态（例如：0-禁用，1-正常）
      */
     private Integer status;
