@@ -3,6 +3,7 @@ package com.boyu.snbe.mvc.controller;
 import com.boyu.snbe.common.service.RedisService;
 import com.boyu.snbe.common.servlet.SnResponse;
 import com.boyu.snbe.common.util.JwtUtil;
+import com.boyu.snbe.common.util.SecurityUtil;
 import com.boyu.snbe.mvc.entity.UserEntity;
 import com.boyu.snbe.mvc.service.UserService;
 import com.boyu.snbe.mvc.vo.LoginVo;
@@ -69,16 +70,13 @@ public class UserController {
         return res;
     }
 
-    @RequestMapping("/save")
-    public boolean save() {
+    @PostMapping("/save")
+    public boolean save(@RequestBody LoginVo loginVo) {
         UserEntity userEntity = new UserEntity();
-        userEntity.setUserName("admin");
-        userEntity.setPassword(passwordEncoder.encode("admin"));
-        // 这个地方用BCryptPasswordEncoder自动随机加盐并且单向加密，无法解密，所以不需要设计盐值这个字段了
-//        userEntity.setSalt("admin");
-        userEntity.setStatus(1);
-        userEntity.setCreator(0);
-        userEntity.setUpdater(0);
+        userEntity.setUserName(loginVo.getUsername());
+        userEntity.setPassword(passwordEncoder.encode(loginVo.getPassword()));
+        userEntity.setStatus(loginVo.getStatus());
+        SecurityUtil.getCurrentUser().ifPresent(user -> userEntity.setCreator(user.getId()));
         userEntity.setCreateTime(new Date());
         userEntity.setUpdateTime(new Date());
         return userService.save(userEntity);

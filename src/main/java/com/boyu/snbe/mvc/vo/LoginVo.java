@@ -9,4 +9,6 @@ public class LoginVo {
 
     private String password;
 
+    private Integer status;
+
 }
